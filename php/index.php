@@ -30,7 +30,7 @@
 
   <!-- Model image that focuses on scroll -->
 <section class="focus-section">
-  <img src="../img/modelo1.png" alt="Modelo" class="focus-image" />
+  <img src="../img/modelo.png" alt="Modelo" class="focus-image" />
 </section>
 
 <<!-- About Us Section -->
