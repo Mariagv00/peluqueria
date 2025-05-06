@@ -1,0 +1,147 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f1dddb;
+}
+
+/* Navbar */
+header {
+    background-color: #843e3c;
+    color: white;
+    padding: 15px 30px;
+    width: 100%;
+}
+
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.menu {
+    display: flex;
+    gap: 30px;
+    align-items: center;
+}
+
+.menu a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.logo {
+    height: 40px;
+}
+
+/* Perfil / dropdown */
+.profile-container {
+    position: relative;
+}
+
+.profile-icon {
+    height: 35px;
+    width: 35px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.dropdown {
+    display: none;
+    position: absolute;
+    top: 45px;
+    right: 0;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    min-width: 150px;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.dropdown a {
+    display: block;
+    padding: 10px;
+    color: #843e3c;
+    text-decoration: none;
+}
+
+.dropdown a:hover {
+    background-color: #f1dddb;
+}
+
+.dropdown.show {
+    display: block;
+}
+
+/* Registro */
+main {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+}
+
+.register-container {
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
+
+.register-container h2 {
+    margin-bottom: 20px;
+    color: #843e3c;
+}
+
+.register-container form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.register-container label {
+    text-align: left;
+    color: #333;
+    font-weight: bold;
+}
+
+.register-container input {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.register-container button {
+    background-color: #b49690;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.register-container button:hover {
+    background-color: #843e3c;
+}
+
+/* Footer */
+.main-footer {
+    background-color: #843e3c;
+    color: white;
+    text-align: center;
+    padding: 15px 0;
+    font-size: 14px;
+    margin-top: 71px;
+    border-top: 2px solid #b49690;
+}
