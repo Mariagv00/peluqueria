@@ -7,7 +7,7 @@
 </head>
 <body>
 
-    <!-- Navbar actualizado -->
+    <!-- Navbar -->
     <header>
         <nav>
             <div class="menu">
@@ -30,7 +30,9 @@
     <main>
         <div class="register-container">
             <h2>Registro de usuario</h2>
-            <form action="#" method="post">
+            <form action="../connection/controller.php" method="post">
+                <input type="hidden" name="accion" value="registro">
+
                 <label for="nombre">Nombre</label>
                 <input type="text" id="nombre" name="nombre" required>
 
@@ -55,6 +57,6 @@
     <footer class="main-footer">
         <p>&copy; 2025 Beauty. Todos los derechos reservados.</p>
     </footer>
-
+    <script src="../javascript/index.js"></script>
 </body>
 </html>

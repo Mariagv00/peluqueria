@@ -15,14 +15,18 @@ header {
     color: white;
     padding: 15px 30px;
     width: 100%;
+    position: relative;
+    z-index: 10;
 }
 
 nav {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    position: relative;
 }
 
+/* Logo y enlaces */
 .menu {
     display: flex;
     gap: 30px;
@@ -39,9 +43,10 @@ nav {
     height: 40px;
 }
 
-/* Perfil / dropdown */
+/* Perfil y dropdown */
 .profile-container {
     position: relative;
+    z-index: 1000;
 }
 
 .profile-icon {
@@ -60,8 +65,12 @@ nav {
     border: 1px solid #ccc;
     border-radius: 5px;
     min-width: 150px;
-    z-index: 1000;
+    z-index: 2000;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.dropdown.show {
+    display: block;
 }
 
 .dropdown a {
@@ -75,11 +84,7 @@ nav {
     background-color: #f1dddb;
 }
 
-.dropdown.show {
-    display: block;
-}
-
-/* Login form */
+/* Formulario login */
 main {
     display: flex;
     justify-content: center;

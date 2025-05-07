@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>Iniciar Sesión</title>
     <link rel="stylesheet" href="../css/login.css">
 </head>
+
 <body>
 
     <!-- Header / Navbar -->
@@ -23,6 +25,7 @@
                     <a href="register.php">Registrarse</a>
                 </div>
             </div>
+
         </nav>
     </header>
 
@@ -30,7 +33,9 @@
     <main>
         <div class="login-container">
             <h2>Inicio de sesión</h2>
-            <form action="#" method="post">
+            <form action="../connection/controller.php" method="post">
+                <input type="hidden" name="accion" value="login">
+
                 <label for="email">Correo</label>
                 <input type="email" id="email" name="email" required>
 
@@ -46,5 +51,7 @@
     <footer class="main-footer">
         <p>&copy; 2025 Beauty. Todos los derechos reservados.</p>
     </footer>
+    <script src="../javascript/index.js"></script>
 </body>
+
 </html>

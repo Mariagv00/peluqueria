@@ -1,13 +1,17 @@
-// Dropdown del perfil
-const profileIcon = document.getElementById('profileIcon');
-const dropdownMenu = document.getElementById('dropdownMenu');
+document.addEventListener("DOMContentLoaded", function () {
+    const profileIcon = document.getElementById("profileIcon");
+    const dropdownMenu = document.getElementById("dropdownMenu");
 
-profileIcon.addEventListener('click', () => {
-    dropdownMenu.classList.toggle('show');
-});
+    if (profileIcon && dropdownMenu) {
+        profileIcon.addEventListener("click", (e) => {
+            e.stopPropagation(); // Evita que el click cierre el dropdown inmediatamente
+            dropdownMenu.classList.toggle("show");
+        });
 
-window.addEventListener('click', (e) => {
-    if (!profileIcon.contains(e.target) && !dropdownMenu.contains(e.target)) {
-        dropdownMenu.classList.remove('show');
+        document.addEventListener("click", function (e) {
+            if (!dropdownMenu.contains(e.target)) {
+                dropdownMenu.classList.remove("show");
+            }
+        });
     }
 });
