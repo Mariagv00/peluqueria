@@ -1,10 +1,15 @@
+<?php
+session_start();
+?>
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>Peluquería - Inicio</title>
     <link rel="stylesheet" href="../css/index.css">
 </head>
+
 <body>
 
     <header>
@@ -12,14 +17,19 @@
             <div class="menu">
                 <img src="../img/logo.png" alt="Logo" class="logo">
                 <a href="index.php">INICIO</a>
-                <a href="#">AGENDA</a>
-                <a href="#">TIENDA</a>
+                <a href="agenda.php">AGENDA</a>
+                <a href="tienda.php">TIENDA</a>
             </div>
             <div class="profile-container">
-                <img src="../img/perfil.png" alt="Profile" class="profile-icon" id="profileIcon">
+                <img src="../img/perfil.png" alt="Perfil" class="profile-icon" id="profileIcon">
                 <div class="dropdown" id="dropdownMenu">
-                    <a href="login.php">Iniciar Sesión</a>
-                    <a href="register.php">Registrarse</a>
+                    <?php if (isset($_SESSION['id_usuario'])): ?>
+                        <a href="citas.php">Mis citas</a>
+                        <a href="logout.php">Cerrar Sesión</a>
+                    <?php else: ?>
+                        <a href="login.php">Iniciar Sesión</a>
+                        <a href="register.php">Registrarse</a>
+                    <?php endif; ?>
                 </div>
             </div>
         </nav>
@@ -33,9 +43,9 @@
 
     <main>
         <div class="imagenes">
-            <div class="caja"><img src="../img/mechas.jpg" alt="mechas"></div>
-            <div class="caja"><img src="../img/rizos.jpg" alt="corte"></div>
-            <div class="caja"><img src="../img/corte.jpg" alt="corte"></div>
+            <div class="caja"><img src="../img/cortes/mechas.jpg" alt="mechas"></div>
+            <div class="caja"><img src="../img/cortes/rizos.jpg" alt="corte"></div>
+            <div class="caja"><img src="../img/cortes/corte.jpg" alt="corte"></div>
         </div>
 
         <!-- Quiénes Somos -->
@@ -44,9 +54,12 @@
             <div class="about-container">
                 <img src="../img/logo.png" alt="Logo redondo" class="about-logo">
                 <p class="about-text">
-                    En <strong>Beauty</strong> nos apasiona resaltar tu estilo con los mejores <strong>cortes de pelo</strong>, 
-                    técnicas de <strong>mechas</strong> modernas, <strong>rizos</strong> definidos y <strong>reflejos</strong> naturales. 
-                    Nuestro equipo profesional trabaja con dedicación para que cada cliente se sienta auténtico y renovado.
+                    En <strong>Beauty</strong> nos apasiona resaltar tu estilo con los mejores <strong>cortes de
+                        pelo</strong>,
+                    técnicas de <strong>mechas</strong> modernas, <strong>rizos</strong> definidos y
+                    <strong>reflejos</strong> naturales.
+                    Nuestro equipo profesional trabaja con dedicación para que cada cliente se sienta auténtico y
+                    renovado.
                 </p>
             </div>
         </section>
@@ -66,10 +79,13 @@
     </main>
 
     <footer class="main-footer">
-      <p>&copy; 2025 Beauty. Todos los derechos reservados.</p>
+        <p>&copy; 2025 Beauty. Todos los derechos reservados.</p>
     </footer>
 
-    <script src="../javascript/index.js"></script>
+
+    <script src="../javascript/index.js" defer></script>
+
 
 </body>
+
 </html>

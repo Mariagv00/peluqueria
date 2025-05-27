@@ -15,7 +15,7 @@
             <div class="menu">
                 <img src="../img/logo.png" alt="Logo" class="logo">
                 <a href="index.php">INICIO</a>
-                <a href="#">AGENDA</a>
+                <a href="agenda.php">AGENDA</a>
                 <a href="#">TIENDA</a>
             </div>
             <div class="profile-container">

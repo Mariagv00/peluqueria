@@ -1,0 +1,220 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  font-family: Arial, sans-serif;
+  background-color: #f1dddb;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Header */
+header {
+  background-color: #843e3c;
+  padding: 15px 30px;
+  color: white;
+}
+
+nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.menu {
+  display: flex;
+  gap: 30px;
+  align-items: center;
+}
+
+.menu a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.logo {
+  height: 40px;
+}
+
+/* Perfil / Dropdown */
+.profile-container {
+  position: relative;
+}
+
+.profile-icon {
+  height: 35px;
+  width: 35px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.dropdown {
+  display: none;
+  position: absolute;
+  top: 45px;
+  right: 0;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  min-width: 150px;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.dropdown a {
+  display: block;
+  padding: 10px;
+  color: #843e3c;
+  text-decoration: none;
+}
+
+.dropdown a:hover {
+  background-color: #f1dddb;
+}
+
+.dropdown.show {
+  display: block;
+}
+
+/* Main layout */
+.main-content {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 40px 60px;
+  box-sizing: border-box;
+  height: calc(100vh - 130px); /* header + footer height */
+  overflow: hidden;
+}
+
+.agenda-container {
+  display: flex;
+  flex-direction: row;
+  gap: 50px;
+  width: 100%;
+  max-width: 1400px;
+  height: 100%;
+}
+
+/* Calendar */
+.calendar-box {
+  flex: 2;
+  background-color: white;
+  padding: 25px;
+  border-radius: 10px;
+  min-width: 600px;
+  height: 100%;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
+}
+
+#calendar {
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+}
+
+/* FullCalendar ajustes */
+.fc {
+  font-size: 16px;
+}
+
+.fc .fc-daygrid-day.fc-day-other {
+  background-color: #f1dddb;
+  opacity: 0.4;
+}
+
+.fc-daygrid-day-frame {
+  cursor: pointer;
+}
+
+.fc-toolbar-title {
+  text-transform: capitalize;
+  font-weight: bold;
+  font-size: 1.5rem;
+}
+
+/* Formulario */
+.form-box {
+  flex: 1;
+  background-color: #f1dddb;
+  padding: 20px;
+  border-radius: 10px;
+  border: 2px solid #b49690;
+  max-width: 350px;
+  height: fit-content;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.form-box h3 {
+  color: #843e3c;
+  margin-bottom: 15px;
+}
+
+.form-box label {
+  font-weight: bold;
+  display: block;
+  margin-top: 10px;
+}
+
+.form-box select,
+.form-box textarea {
+  width: 100%;
+  margin-top: 5px;
+  margin-bottom: 15px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.button-box {
+  text-align: center;
+  margin-top: 10px;
+}
+
+.button-box button {
+  background-color: #843e3c;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.button-box button:hover {
+  background-color: #a65e5a;
+}
+
+/* Footer */
+.main-footer {
+  background-color: #843e3c;
+  color: white;
+  text-align: center;
+  padding: 15px 0;
+  font-size: 14px;
+  border-top: 2px solid #b49690;
+  margin-top: auto;
+}
+
+.fc-day-selected {
+  background-color: #888686 !important;  /* fondo intenso */
+  color: white !important;               /* texto blanco */
+  border: 2px solid #b49690 !important;  /* borde más visible */
+  border-radius: 8px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+

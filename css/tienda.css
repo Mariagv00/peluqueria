@@ -1,0 +1,143 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  font-family: Arial, sans-serif;
+  background-color: #f1dddb;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Header */
+header {
+  background-color: #843e3c;
+  padding: 15px 30px;
+  color: white;
+}
+
+nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.menu {
+  display: flex;
+  gap: 30px;
+  align-items: center;
+}
+
+.menu a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.logo {
+  height: 40px;
+}
+
+.cart-icon {
+  height: 35px;
+  width: 35px;
+  border-radius: 50%;
+  object-fit: cover;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+
+/* Perfil / Dropdown */
+.profile-container {
+  position: relative;
+}
+
+.profile-icon {
+  height: 35px;
+  width: 35px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.dropdown {
+  display: none;
+  position: absolute;
+  top: 45px;
+  right: 0;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  min-width: 150px;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.dropdown a {
+  display: block;
+  padding: 10px;
+  color: #843e3c;
+  text-decoration: none;
+}
+
+.dropdown a:hover {
+  background-color: #f1dddb;
+}
+
+.dropdown.show {
+  display: block;
+}
+
+/* Contenido principal */
+.main-container {
+  flex: 1;
+  display: flex;
+  padding: 20px;
+  gap: 40px;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 200px;
+  background-color: #c0a7a1;
+  padding: 20px;
+  font-size: 14px;
+}
+
+/* Galería de productos */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+  flex: 1;
+  padding: 30px;
+  justify-items: center;
+}
+
+.product {
+  background-color: #b49690;
+  width: 200px;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  border-radius: 6px;
+}
+
+
+/* Footer */
+.main-footer {
+  background-color: #843e3c;
+  color: white;
+  text-align: center;
+  padding: 15px 0;
+  font-size: 14px;
+}
