@@ -8,19 +8,23 @@ html, body {
   height: 100%;
   font-family: Arial, sans-serif;
   background-color: #f1dddb;
+  overflow-x: hidden;
 }
 
 body {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
 }
 
-/* Header */
+/* Header fijo */
 header {
   background-color: #843e3c;
   padding: 15px 30px;
   color: white;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
 }
 
 nav {
@@ -51,13 +55,15 @@ nav {
   border-radius: 50%;
   object-fit: cover;
   cursor: pointer;
-  margin-right: 10px;
+  background-color: #843e3c;
 }
-
 
 /* Perfil / Dropdown */
 .profile-container {
   position: relative;
+  display: flex;
+  gap: 10px;
+  align-items: center;
 }
 
 .profile-icon {
@@ -99,39 +105,118 @@ nav {
 .main-container {
   flex: 1;
   display: flex;
+  margin-top: 85px; /* espacio para header fijo */
   padding: 20px;
   gap: 40px;
 }
 
-/* Sidebar */
+/* Sidebar fijo */
 .sidebar {
   width: 200px;
   background-color: #c0a7a1;
   padding: 20px;
   font-size: 14px;
+  height: calc(100vh - 85px);
+  position: sticky;
+  top: 85px;
+  overflow-y: auto;
 }
 
 /* Galería de productos */
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, minmax(220px, 1fr));
   gap: 30px;
   flex: 1;
-  padding: 30px;
+  padding: 20px;
   justify-items: center;
 }
 
 .product {
   background-color: #b49690;
-  width: 200px;
-  height: 200px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
+  width: 220px;
+  padding: 15px;
   border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
 
+.product img {
+  width: 100%;
+  height: 180px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.product h4 {
+  font-size: 16px;
+  margin: 8px 0 4px;
+  font-weight: bold;
+}
+
+.product .descripcion {
+  font-size: 13px;
+  color: #333;
+  margin-bottom: 6px;
+}
+
+.product .precio {
+  font-size: 15px;
+  color: #000;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.cantidad-box {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.qty-btn {
+  width: 25px;
+  height: 25px;
+  background-color: #843e3c;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.cantidad {
+  width: 30px;
+  text-align: center;
+  border: 1px solid #999;
+  border-radius: 3px;
+  background-color: #fff;
+  -moz-appearance: textfield;
+}
+
+.cantidad::-webkit-inner-spin-button,
+.cantidad::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.add-btn {
+  padding: 6px 12px;
+  background-color: #843e3c;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: bold;
+  transition: background 0.2s ease-in-out;
+}
+
+.add-btn:hover {
+  background-color: #6d302e;
+}
 
 /* Footer */
 .main-footer {
@@ -140,4 +225,6 @@ nav {
   text-align: center;
   padding: 15px 0;
   font-size: 14px;
+  border-top: 2px solid #b49690;
+  margin-top: auto;
 }
