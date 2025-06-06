@@ -122,31 +122,40 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
 
     // Login
-    elseif ($accion === "login") {
-        $email = trim($_POST['email']);
-        $password = $_POST['password'];
+    // Login
+elseif ($accion === "login") {
+    $email = trim($_POST['email']);
+    $password = $_POST['password'];
 
-        $stmt = $conexion->prepare("SELECT id_usuario, contraseña FROM usuarios WHERE email = ?");
-        $stmt->bind_param("s", $email);
-        $stmt->execute();
-        $resultado = $stmt->get_result();
+    $stmt = $conexion->prepare("SELECT id_usuario, contraseña, tipo_usuario FROM usuarios WHERE email = ?");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $resultado = $stmt->get_result();
 
-        if ($resultado->num_rows === 1) {
-            $usuario = $resultado->fetch_assoc();
+    if ($resultado->num_rows === 1) {
+        $usuario = $resultado->fetch_assoc();
 
-            if (password_verify($password, $usuario['contraseña'])) {
-                $_SESSION['id_usuario'] = $usuario['id_usuario'];
-                header("Location: ../php/index.php");
-                exit;
+        if (password_verify($password, $usuario['contraseña']) || $password === $usuario['contraseña']) {
+    // Login válido
+            $_SESSION['id_usuario'] = $usuario['id_usuario'];
+            $_SESSION['tipo_usuario'] = $usuario['tipo_usuario'];
+
+            if ($usuario['tipo_usuario'] === 'admin') {
+                header("Location: ../php/admin/admin.php");
             } else {
-                echo "<script>alert('Contraseña incorrecta'); window.history.back();</script>";
+                header("Location: ../php/index.php");
             }
+            exit;
         } else {
-            echo "<script>alert('Usuario no encontrado'); window.history.back();</script>";
+            echo "<script>alert('Contraseña incorrecta'); window.history.back();</script>";
         }
-
-        $stmt->close();
+    } else {
+        echo "<script>alert('Usuario no encontrado'); window.history.back();</script>";
     }
+
+    $stmt->close();
+}
+
 
     // Registro de cita
     elseif ($accion === "cita") {

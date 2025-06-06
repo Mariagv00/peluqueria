@@ -1,0 +1,125 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body, html {
+  height: 100%;
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  background-color: #f1dddb;
+}
+
+/* Header */
+header {
+  background-color: #843e3c;
+  padding: 15px 30px;
+  color: white;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+}
+
+nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.menu {
+  display: flex;
+  gap: 30px;
+  align-items: center;
+}
+
+.menu a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.logo {
+  height: 40px;
+}
+
+.profile-container {
+  position: relative;
+}
+
+.profile-icon {
+  height: 35px;
+  width: 35px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.dropdown {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 45px;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  min-width: 140px;
+  z-index: 10;
+}
+
+.dropdown a {
+  display: block;
+  padding: 10px;
+  color: #843e3c;
+  text-decoration: none;
+}
+
+.dropdown a:hover {
+  background-color: #f1dddb;
+}
+
+.dropdown.show {
+  display: block;
+}
+
+/* Contenido principal */
+.admin-container {
+  flex: 1;
+  padding: 100px 40px 40px;
+}
+
+.admin-title {
+  font-size: 28px;
+  margin-bottom: 30px;
+  color: #843e3c;
+}
+
+.admin-links a {
+  display: inline-block;
+  margin: 10px 20px;
+  padding: 12px 24px;
+  background-color: #843e3c;
+  color: white;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: background 0.3s;
+}
+
+.admin-links a:hover {
+  background-color: #6d302e;
+}
+
+/* Footer fijo */
+.main-footer {
+  background-color: #843e3c;
+  color: white;
+  text-align: center;
+  padding: 15px 0;
+  font-size: 14px;
+  border-top: 2px solid #b49690;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+}

@@ -105,7 +105,7 @@ nav {
 .main-container {
   flex: 1;
   display: flex;
-  margin-top: 85px; /* espacio para header fijo */
+  margin-top: 85px;
   padding: 20px;
   gap: 40px;
 }
@@ -130,6 +130,7 @@ nav {
   flex: 1;
   padding: 20px;
   justify-items: center;
+  transition: grid-template-columns 0.3s ease-in-out;
 }
 
 .product {
@@ -227,4 +228,85 @@ nav {
   font-size: 14px;
   border-top: 2px solid #b49690;
   margin-top: auto;
+}
+
+/* Carrito desplegable */
+.carrito-desplegable {
+  position: fixed;
+  top: 85px;
+  right: 0;
+  width: 300px;
+  height: calc(100vh - 85px);
+  background-color: #f4e8e6;
+  border-left: 2px solid #b49690;
+  padding: 20px;
+  overflow-y: auto;
+  box-shadow: -4px 0 10px rgba(0,0,0,0.2);
+  z-index: 999;
+  display: none;
+}
+
+.carrito-desplegable.show {
+  display: block;
+}
+
+.product-grid.expand {
+  margin-right: 320px;
+  transition: margin-right 0.3s ease;
+}
+
+.carrito-items {
+  list-style: none;
+  padding: 0;
+}
+
+.carrito-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.carrito-item img {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+
+.carrito-item .info {
+  flex: 1;
+  font-size: 13px;
+}
+
+.carrito-item .precio {
+  font-weight: bold;
+}
+
+.carrito-item .eliminar {
+  background-color: #843e3c;
+  color: white;
+  border: none;
+  padding: 2px 6px;
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+.carrito-footer {
+  border-top: 1px solid #999;
+  padding-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+}
+
+#comprar-btn, #vaciar-btn {
+  padding: 6px 10px;
+  background-color: #843e3c;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }
