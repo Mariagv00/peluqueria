@@ -10,23 +10,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $nombre = $_POST['nombre'];
     $precio = $_POST['precio'];
     $imagen = $_POST['imagen'];
+    $cantidad = max(1, intval($_POST['cantidad'] ?? 1));
 
-    // Añadir al carrito
-    if (isset($_POST['accion']) && $_POST['accion'] === 'agregar') {
+    if ($_POST['accion'] === 'agregar') {
         if (isset($_SESSION['carrito'][$id])) {
-            $_SESSION['carrito'][$id]['cantidad'] += 1;
+            $_SESSION['carrito'][$id]['cantidad'] += $cantidad;
         } else {
             $_SESSION['carrito'][$id] = [
                 'nombre' => $nombre,
                 'precio' => $precio,
-                'cantidad' => 1,
+                'cantidad' => $cantidad,
                 'imagen' => $imagen
             ];
         }
     }
 
-    // Eliminar un producto
-    if (isset($_POST['accion']) && $_POST['accion'] === 'eliminar') {
+    if ($_POST['accion'] === 'eliminar') {
         if (isset($_SESSION['carrito'][$id])) {
             $_SESSION['carrito'][$id]['cantidad'] -= 1;
             if ($_SESSION['carrito'][$id]['cantidad'] <= 0) {
@@ -35,8 +34,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
     }
 
-    // Vaciar carrito completo
-    if (isset($_POST['accion']) && $_POST['accion'] === 'vaciar') {
+    if ($_POST['accion'] === 'vaciar') {
         $_SESSION['carrito'] = [];
     }
 
