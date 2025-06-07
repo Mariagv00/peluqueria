@@ -149,6 +149,6 @@ $id_usuario = $_SESSION['id_usuario'];
   $stmt->close();
   ?>
 </main>
- <script src="../javascript/tienda.js"></script>
+ <script src="../javascript/index.js"></script>
 </body>
 </html>

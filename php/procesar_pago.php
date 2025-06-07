@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_SESSION['carrito']) && iss
     $stmt->close();
 
     // 2. Insertar detalle_pedido y construir HTML
-    $facturaHTML = "<h2>Factura de pedido #$id_pedido</h2>";
+    $facturaHTML = "<h2>Factura del pedido </h2>";
     $facturaHTML .= "<p><strong>Fecha:</strong> $fecha_pedido</p>";
     $facturaHTML .= "<table border='1' cellpadding='6' cellspacing='0' style='width:100%; border-collapse:collapse;'>
                       <thead><tr>
