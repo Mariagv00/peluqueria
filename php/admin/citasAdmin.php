@@ -4,20 +4,73 @@ if (!isset($_SESSION['id_usuario']) || $_SESSION['tipo_usuario'] !== 'admin') {
     header("Location: ../index.php");
     exit;
 }
+
+require '../../vendor/autoload.php'; // PHPMailer
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
 include("../../connection/db.php");
 
 // Procesar aceptación
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id_cita'])) {
+
     $id_cita = intval($_POST['id_cita']);
+
+    // Obtener datos de la cita para enviar correo
+    $stmtInfo = $conexion->prepare("
+        SELECT 
+            u.nombre AS usuario, 
+            u.email,
+            s.nombre AS servicio, 
+            c.fecha, 
+            c.hora 
+        FROM citas c
+        JOIN usuarios u ON c.id_usuario = u.id_usuario
+        JOIN servicios s ON c.id_servicio = s.id_servicio
+        WHERE c.id_cita = ?
+    ");
+    $stmtInfo->bind_param("i", $id_cita);
+    $stmtInfo->execute();
+    $stmtInfo->bind_result($usuario, $email_usuario, $servicio, $fecha, $hora);
+    $stmtInfo->fetch();
+    $stmtInfo->close();
+
+    // Actualizar la cita como aceptada
     $stmt = $conexion->prepare("UPDATE citas SET estado = 'aceptada' WHERE id_cita = ?");
     $stmt->bind_param("i", $id_cita);
     $stmt->execute();
     $stmt->close();
 
+    // --------------------------
+    // ENVIAR CORREO DE CONFIRMACIÓN
+    // --------------------------
+    $mail = new PHPMailer(true);
+
+    try {
+        $mail->setFrom('no-reply@beauty.com', 'Beauty');
+        $mail->addAddress("mariagarvid2000@gmail.com"); // destinatario fijo
+
+        $mail->Subject = "Cita aceptada - $usuario";
+
+        $mail->Body = 
+            "Hola $usuario,\n\n" .
+            "Tu cita ha sido *ACEPTADA*.\n\n" .
+            "📅 Fecha: $fecha\n" .
+            "⏰ Hora: $hora\n" .
+            "💇 Servicio: $servicio\n\n" .
+            "Gracias por confiar en Beauty.";
+
+        $mail->send();
+
+    } catch (Exception $e) {
+        error_log("Error enviando correo de cita aceptada: " . $mail->ErrorInfo);
+    }
+
     header("Location: citasAdmin.php?mensaje=aceptada");
     exit;
 }
 
+// Obtener citas
 $hoy = date('Y-m-d');
 $result = $conexion->query("
     SELECT c.id_cita, u.nombre AS usuario, s.nombre AS servicio, c.fecha, c.hora, c.estado
@@ -58,7 +111,7 @@ $result = $conexion->query("
     <h1 class="admin-title">Gestión de Citas</h1>
 
     <?php if (isset($_GET['mensaje']) && $_GET['mensaje'] === 'aceptada'): ?>
-        <div class="mensaje exito">✅ Cita aceptada correctamente.</div>
+        <div class="mensaje exito">✅ Cita aceptada y correo enviado correctamente.</div>
         <script>
             setTimeout(() => {
                 const msg = document.querySelector('.mensaje');

@@ -86,7 +86,6 @@ if (isset($_GET['api'])) {
 }
 
 
-
 /* ============================================================
    FORMULARIOS
 ============================================================ */
@@ -95,7 +94,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 
     /* ============================================================
-           REGISTRO DE USUARIO
+           REGISTRO DE USUARIO (mensaje de éxito eliminado)
     ============================================================ */
     if ($accion === "registro") {
 
@@ -106,7 +105,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $direccion = trim($_POST['direccion']);
         $telefono = trim($_POST['telefono']);
 
-        // Validación de contraseña fuerte
         if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/', $password)) {
             echo "<script>
                 sessionStorage.setItem('mensajeRegistro', '❌ La contraseña debe tener mínimo 8 caracteres, una mayúscula, una minúscula y un número.');
@@ -116,10 +114,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             exit;
         }
 
-        // Contraseña cifrada
         $password_hash = password_hash($password, PASSWORD_DEFAULT);
 
-        // Insertar usuario
         $stmt = $conexion->prepare("
             INSERT INTO usuarios (nombre, apellidos, email, contraseña, direccion, telefono, tipo_usuario)
             VALUES (?, ?, ?, ?, ?, ?, 'cliente')
@@ -128,19 +124,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         if ($stmt->execute()) {
 
-            /* ---- Enviar correo al administrador ---- */
+            // Enviar correo
             $para = "mariagarvid2000@gmail.com";
             $asunto = "Nuevo registro en Beauty";
-            $mensaje = "El usuario $nombre se ha registrado.\n\nBienvenido a Beauty ❤️";
+            $mensaje = "El usuario $nombre se ha registrado.\n\nBienvenido a Beauty";
             $headers = "From: Beauty <no-reply@beauty.com>\r\nContent-Type: text/plain; charset=UTF-8";
-
             mail($para, $asunto, $mensaje, $headers);
 
-            echo "<script>
-                sessionStorage.setItem('mensajeRegistro', '✅ Usuario registrado correctamente');
-                sessionStorage.setItem('tipoMensaje', 'exito');
-                window.location.href = '../php/login.php';
-            </script>";
+            echo "<script> window.location.href = '../php/login.php'; </script>";
             exit;
 
         } else {
@@ -154,9 +145,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
 
 
-
     /* ============================================================
-           LOGIN
+           LOGIN (compatible admin + hash + texto plano)
     ============================================================ */
     if ($accion === "login") {
 
@@ -173,24 +163,37 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $stmt->bind_result($id_usuario, $hash, $tipo);
             $stmt->fetch();
 
-            $correcto = ($tipo === "admin")
-                ? ($password === $hash)
-                : password_verify($password, $hash);
+            // Detectar si la contraseña almacenada es un hash
+            $info = password_get_info($hash);
+
+            if ($info['algo'] !== 0) {
+                // ES un hash → usar password_verify()
+                $correcto = password_verify($password, $hash);
+            } else {
+                // NO es hash → comparar texto plano (admins antiguos)
+                $correcto = ($password === $hash);
+            }
 
             if ($correcto) {
 
                 $_SESSION['id_usuario'] = $id_usuario;
                 $_SESSION['tipo_usuario'] = $tipo;
 
-                header("Location: " . ($tipo === "admin" ? "../php/admin/admin.php" : "../php/index.php"));
+                // Redirección según tipo
+                if ($tipo === "admin") {
+                    header("Location: ../php/admin/admin.php");
+                    exit;
+                }
+
+                header("Location: ../php/index.php");
                 exit;
             }
 
-            echo "<script>alert('Contraseña incorrecta'); window.history.back();</script>";
+            header("Location: ../php/login.php?error=Contraseña incorrecta");
             exit;
         }
 
-        echo "<script>alert('Usuario no encontrado'); window.history.back();</script>";
+        header("Location: ../php/login.php?error=Usuario no encontrado");
         exit;
     }
 
@@ -202,7 +205,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if ($accion === "cita") {
 
         if (!isset($_SESSION['id_usuario'])) {
-            echo "<script>alert('Debes iniciar sesión para reservar.'); window.location.href='../php/login.php';</script>";
+            header("Location: ../php/login.php?error=Debes iniciar sesión para reservar");
             exit;
         }
 
@@ -213,7 +216,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $notas = trim($_POST['notas']);
         $estado = "pendiente";
 
-        /* --- Obtener nombre del usuario --- */
         $stmtUser = $conexion->prepare("SELECT nombre FROM usuarios WHERE id_usuario = ?");
         $stmtUser->bind_param("i", $id_usuario);
         $stmtUser->execute();
@@ -221,7 +223,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $stmtUser->fetch();
         $stmtUser->close();
 
-        /* --- Comprobar cita repetida --- */
         $stmt = $conexion->prepare("SELECT id_cita FROM citas WHERE fecha = ? AND hora = ? AND id_servicio = ?");
         $stmt->bind_param("ssi", $fecha, $hora, $servicio);
         $stmt->execute();
@@ -236,7 +237,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             exit;
         }
 
-        /* --- Insertar cita --- */
         $stmt = $conexion->prepare("
             INSERT INTO citas (id_usuario, id_servicio, fecha, hora, estado, notas)
             VALUES (?, ?, ?, ?, ?, ?)
@@ -244,22 +244,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $stmt->bind_param("iissss", $id_usuario, $servicio, $fecha, $hora, $estado, $notas);
         $stmt->execute();
 
-        /* ============================================================
-               ENVIAR CORREO AL ADMIN CON EL MENSAJE EXACTO
-        ============================================================ */
         $para = "mariagarvid2000@gmail.com";
         $asunto = "Nueva cita registrada";
-        $mensaje = "Gracias por su cita, $nombre_usuario.\n\n".
-                   "Se le volverá a mandar un correo si su cita ha sido confirmada.\n\n".
-                   "Fecha: $fecha\n".
-                   "Hora: $hora\n";
-
+        $mensaje = "Gracias por su cita, $nombre_usuario.\n\nFecha: $fecha\nHora: $hora\n";
         $headers = "From: Beauty <no-reply@beauty.com>\r\nContent-Type: text/plain; charset=UTF-8";
-
         mail($para, $asunto, $mensaje, $headers);
 
         echo "<script>
-            sessionStorage.setItem('mensajeCita', '✅ Cita registrada correctamente. Serás redirigido en 5 segundos...');
+            sessionStorage.setItem('mensajeCita', '✅ Cita registrada correctamente.');
             sessionStorage.setItem('tipoMensaje', 'exito');
             window.location.href = '../php/agenda.php';
         </script>";

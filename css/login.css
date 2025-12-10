@@ -84,7 +84,7 @@ nav {
     background-color: #f1dddb;
 }
 
-/* Formulario login */
+/* Login */
 main {
     display: flex;
     justify-content: center;
@@ -138,6 +138,17 @@ main {
 
 .login-container button:hover {
     background-color: #843e3c;
+}
+
+/* Cuadro de error */
+.mensaje-error {
+    background-color: #ffcece;
+    color: #b30000;
+    padding: 12px;
+    border: 1px solid #ff8a8a;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    font-weight: bold;
 }
 
 /* Footer */

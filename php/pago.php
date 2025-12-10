@@ -10,10 +10,19 @@ use PHPMailer\PHPMailer\Exception;
 include("../connection/db.php");
 
 // Validar usuario y carrito
-if (!isset($_SESSION['id_usuario']) || empty($_SESSION['carrito'])) {
-    echo "<script>alert('Debes iniciar sesión y tener productos en la cesta.'); window.location.href='tienda.php';</script>";
+
+// No ha iniciado sesión → enviar a login
+if (!isset($_SESSION['id_usuario'])) {
+    header("Location: login.php");
     exit;
 }
+
+// Ha iniciado sesión pero el carrito está vacío → volver a tienda
+if (empty($_SESSION['carrito'])) {
+    header("Location: tienda.php");
+    exit;
+}
+
 
 $id_usuario = $_SESSION['id_usuario'];
 $carrito = $_SESSION['carrito'];
