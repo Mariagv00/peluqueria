@@ -7,18 +7,15 @@
 html, body {
   height: 100%;
   font-family: Arial, sans-serif;
-  background-color: #f1dddb;
-}
-
-body {
+  background-color: #ffffff;
+  overflow: hidden; /* Sin scroll vertical */
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
 }
 
-/* Header */
+/* HEADER */
 header {
-  background-color: #843e3c;
+  background-color: #c47e6d;
   padding: 15px 30px;
   color: white;
 }
@@ -36,7 +33,7 @@ nav {
 }
 
 .menu a {
-  color: white;
+  color: black;
   text-decoration: none;
   font-weight: bold;
 }
@@ -45,7 +42,7 @@ nav {
   height: 40px;
 }
 
-/* Perfil / Dropdown */
+/* PERFIL */
 .profile-container {
   position: relative;
 }
@@ -67,8 +64,10 @@ nav {
   border-radius: 5px;
   min-width: 150px;
   z-index: 1000;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
+
+.dropdown.show { display: block; }
 
 .dropdown a {
   display: block;
@@ -81,115 +80,115 @@ nav {
   background-color: #f1dddb;
 }
 
-.dropdown.show {
-  display: block;
-}
-
-/* Main layout */
-.main-content {
+/* CONTENEDOR PRINCIPAL */
+.agenda-container {
   flex: 1;
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 40px 60px;
-  box-sizing: border-box;
-  height: calc(100vh - 130px); /* header + footer height */
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
   overflow: hidden;
 }
 
-.agenda-container {
-  display: flex;
-  flex-direction: row;
-  gap: 50px;
-  width: 100%;
-  max-width: 1400px;
-  height: 100%;
+/* TITULAR */
+.banner-content {
+  text-align: center;
+  margin-bottom: 10px;
 }
 
-/* Calendar */
-.calendar-box {
-  flex: 2;
-  background-color: white;
-  padding: 25px;
-  border-radius: 10px;
-  min-width: 600px;
-  height: 100%;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  overflow-y: auto;
-}
-
-#calendar {
-  width: 100%;
-  height: 100%;
-  max-height: 100%;
-}
-
-/* FullCalendar ajustes */
-.fc {
-  font-size: 16px;
-}
-
-.fc .fc-daygrid-day.fc-day-other {
-  background-color: #f1dddb;
-  opacity: 0.4;
-}
-
-.fc-daygrid-day-frame {
-  cursor: pointer;
-}
-
-.fc-toolbar-title {
-  text-transform: capitalize;
+.banner-content h1 {
+  font-size: 22px;
   font-weight: bold;
-  font-size: 1.5rem;
+  color: #3e1f1c;
+  margin-bottom: 5px;
 }
 
-/* Formulario */
+.banner-content p {
+  font-size: 14px;
+  color: #5f5f5f;
+}
+
+/* BLOQUE CON FONDO Y FORMULARIO */
+.agenda-card {
+  position: relative;
+  width: 800px;
+  max-width: 90%;
+  height: 550px;
+  text-align: center;
+}
+
+/* FONDO */
+.agenda-background {
+  position: relative;
+  z-index: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  height: 100%;
+}
+
+.agenda-background img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.9;
+  border-radius: 12px;
+}
+
+/* FORMULARIO */
 .form-box {
-  flex: 1;
-  background-color: #f1dddb;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 340px;
   padding: 20px;
-  border-radius: 10px;
-  border: 2px solid #b49690;
-  max-width: 350px;
-  height: fit-content;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  background-color: #e7dfda;
+  border-radius: 12px;
+  border: 2px solid #843e3c;
+  z-index: 2;
 }
 
 .form-box h3 {
+  text-align: center;
   color: #843e3c;
   margin-bottom: 15px;
 }
 
 .form-box label {
-  font-weight: bold;
   display: block;
-  margin-top: 10px;
+  font-weight: bold;
+  margin-top: 8px;
+  font-size: 14px;
 }
 
+.form-box input,
 .form-box select,
 .form-box textarea {
   width: 100%;
-  margin-top: 5px;
-  margin-bottom: 15px;
-  padding: 8px;
+  margin-top: 4px;
+  margin-bottom: 10px;
+  padding: 6px;
+  border-radius: 6px;
   border: 1px solid #ccc;
-  border-radius: 5px;
+  font-size: 13px;
 }
 
+/* BOTÓN */
 .button-box {
   text-align: center;
-  margin-top: 10px;
+  margin-top: 5px;
 }
 
 .button-box button {
+  width: 100%;
+  padding: 8px;
   background-color: #843e3c;
   color: white;
   border: none;
-  padding: 10px 15px;
-  border-radius: 5px;
-  font-weight: bold;
+  border-radius: 6px;
   cursor: pointer;
+  font-size: 14px;
   transition: background-color 0.3s ease;
 }
 
@@ -197,24 +196,68 @@ nav {
   background-color: #a65e5a;
 }
 
-/* Footer */
-.main-footer {
-  background-color: #843e3c;
-  color: white;
+/* TESTIMONIOS */
+.testimonios {
   text-align: center;
-  padding: 15px 0;
+  padding: 0 10px;
+}
+
+.testimonios h2 {
+  color: #843e3c;
+  margin-bottom: 12px;
+  font-size: 16px;
+}
+
+.testimonios-container {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.testimonio {
+  background-color: #f8f3f0;
+  padding: 10px;
+  border-radius: 10px;
+  max-width: 200px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  font-size: 13px;
+}
+
+.testimonio img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-bottom: 8px;
+}
+
+/* FOOTER SIEMPRE ABAJO */
+.main-footer {
+  background-color: #c47e6d;
+  color: black;
+  text-align: center;
+  padding: 10px 0;
   font-size: 14px;
   border-top: 2px solid #b49690;
-  margin-top: auto;
 }
 
-.fc-day-selected {
-  background-color: #888686 !important;  /* fondo intenso */
-  color: white !important;               /* texto blanco */
-  border: 2px solid #b49690 !important;  /* borde más visible */
-  border-radius: 8px;
-  box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
+.mensaje {
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: 5px;
+  text-align: center;
+  font-weight: bold;
+  display: none;
 }
 
+.mensaje.error {
+  background-color: #f8d7da;
+  color: #842029;
+  border: 1px solid #f5c2c7;
+}
 
+.mensaje.exito {
+  background-color: #d1e7dd;
+  color: #0f5132;
+  border: 1px solid #badbcc;
+}

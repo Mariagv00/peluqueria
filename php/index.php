@@ -25,6 +25,8 @@ session_start();
                 <div class="dropdown" id="dropdownMenu">
                     <?php if (isset($_SESSION['id_usuario'])): ?>
                         <a href="citas.php">Mis citas</a>
+                        <a class="dropdown-item" href="pedidos.php">Mis pedidos</a>
+                        <a href="perfil.php">Perfil</a>
                         <a href="logout.php">Cerrar Sesión</a>
                     <?php else: ?>
                         <a href="login.php">Iniciar Sesión</a>
@@ -42,11 +44,21 @@ session_start();
     </section>
 
     <main>
-        <div class="imagenes">
-            <div class="caja"><img src="../img/cortes/mechas.jpg" alt="mechas"></div>
-            <div class="caja"><img src="../img/cortes/rizos.jpg" alt="corte"></div>
-            <div class="caja"><img src="../img/cortes/corte.jpg" alt="corte"></div>
+        <!-- Carrusel -->
+        <div class="carousel-multi">
+            <button class="carousel-btn prev">&#10094;</button>
+            <div class="carousel-track">
+                <img src="../img/cortes/mechas.jpg" alt="mechas">
+                <img src="../img/cortes/rizos.jpg" alt="rizos">
+                <img src="../img/cortes/corte.jpg" alt="corte">
+                <img src="../img/cortes/peinado.jpg" alt="peinado"> 
+                <img src="../img/cortes/coloracion.jpg" alt="coloracion"> 
+                <img src="../img/cortes/rizado.jpg" alt="rizado">
+                <img src="../img/cortes/reflejos.jpg" alt="reflejos">
+            </div>
+            <button class="carousel-btn next">&#10095;</button>
         </div>
+
 
         <!-- Quiénes Somos -->
         <section class="about-section">

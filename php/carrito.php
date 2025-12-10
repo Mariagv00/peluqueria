@@ -1,5 +1,6 @@
 <?php
 session_start();
+include("../connection/db.php"); // Corregido: ruta correcta al archivo de conexión
 
 if (!isset($_SESSION['carrito'])) {
     $_SESSION['carrito'] = [];
@@ -11,21 +12,37 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $precio = $_POST['precio'];
     $imagen = $_POST['imagen'];
     $cantidad = max(1, intval($_POST['cantidad'] ?? 1));
+    $accion = $_POST['accion'];
 
-    if ($_POST['accion'] === 'agregar') {
-        if (isset($_SESSION['carrito'][$id])) {
-            $_SESSION['carrito'][$id]['cantidad'] += $cantidad;
+    // Verificar stock actual
+    $stmt = $conexion->prepare("SELECT stock FROM productos WHERE id_producto = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $stmt->bind_result($stock_actual);
+    $stmt->fetch();
+    $stmt->close();
+
+    if ($accion === 'agregar') {
+        $cantidad_existente = $_SESSION['carrito'][$id]['cantidad'] ?? 0;
+        $total_deseado = $cantidad_existente + $cantidad;
+
+        if ($total_deseado > $stock_actual) {
+            $_SESSION['mensaje_error'] = "❌ Solo quedan $stock_actual unidades en stock de '$nombre'.";
         } else {
-            $_SESSION['carrito'][$id] = [
-                'nombre' => $nombre,
-                'precio' => $precio,
-                'cantidad' => $cantidad,
-                'imagen' => $imagen
-            ];
+            if (isset($_SESSION['carrito'][$id])) {
+                $_SESSION['carrito'][$id]['cantidad'] += $cantidad;
+            } else {
+                $_SESSION['carrito'][$id] = [
+                    'nombre' => $nombre,
+                    'precio' => $precio,
+                    'cantidad' => $cantidad,
+                    'imagen' => $imagen
+                ];
+            }
         }
     }
 
-    if ($_POST['accion'] === 'eliminar') {
+    if ($accion === 'eliminar') {
         if (isset($_SESSION['carrito'][$id])) {
             $_SESSION['carrito'][$id]['cantidad'] -= 1;
             if ($_SESSION['carrito'][$id]['cantidad'] <= 0) {
@@ -34,7 +51,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
     }
 
-    if ($_POST['accion'] === 'vaciar') {
+    if ($accion === 'vaciar') {
         $_SESSION['carrito'] = [];
     }
 

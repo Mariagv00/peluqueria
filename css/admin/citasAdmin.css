@@ -50,3 +50,13 @@
 .profile-container {
   position: relative;
 }
+
+.mensaje.exito {
+  margin: 20px 0;
+  padding: 10px 15px;
+  background-color: #d4edda;
+  color: #155724;
+  font-weight: bold;
+  border-left: 5px solid #28a745;
+  border-radius: 4px;
+}

@@ -5,7 +5,7 @@ body {
   margin: 0;
 }
 
-.container {
+.paypal-box {
   background: white;
   padding: 30px;
   max-width: 500px;
@@ -14,10 +14,21 @@ body {
   box-shadow: 0 0 10px rgba(0,0,0,0.2);
 }
 
-h2 {
-  text-align: center;
-  color: #843e3c;
+.paypal-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
   margin-bottom: 20px;
+}
+
+.paypal-logo {
+  width: 40px;
+  height: auto;
+}
+
+.paypal-blue {
+  color: #0070ba;
 }
 
 .form-group {
@@ -53,8 +64,8 @@ input:focus {
   color: #333;
 }
 
-.btn-pagar {
-  background-color: #843e3c;
+.btn-paypal {
+  background-color: #0070ba;
   color: white;
   border: none;
   padding: 12px;
@@ -63,9 +74,19 @@ input:focus {
   border-radius: 6px;
   margin-top: 20px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s ease;
 }
 
-.btn-pagar:hover {
-  background-color: #6d302e;
+.btn-paypal:hover {
+  background-color: #005ea6;
+}
+
+.card-logos {
+  text-align: center;
+  margin-top: 15px;
+}
+
+.card-logos img {
+  height: 30px;
+  opacity: 0.9;
 }

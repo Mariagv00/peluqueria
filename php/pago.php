@@ -1,163 +1,243 @@
 <?php
 session_start();
-require_once '../libs/dompdf/vendor/autoload.php';
+require '../vendor/autoload.php'; // PHPMailer
 
-use Dompdf\Dompdf;
-use Dompdf\Options;
+require_once '../libs/fpdf/fpdf.php'; // FPDF clásico
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 
 include("../connection/db.php");
 
+// Validar usuario y carrito
 if (!isset($_SESSION['id_usuario']) || empty($_SESSION['carrito'])) {
-  echo "<script>alert('Debes iniciar sesión y tener productos en la cesta para continuar.'); window.location.href='tienda.php';</script>";
-  exit;
+    echo "<script>alert('Debes iniciar sesión y tener productos en la cesta.'); window.location.href='tienda.php';</script>";
+    exit;
 }
 
 $id_usuario = $_SESSION['id_usuario'];
 $carrito = $_SESSION['carrito'];
 $total = 0;
 
-// Si se envió el formulario de pago
-if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['pagar'])) {
+// Calcular total
+foreach ($carrito as $item) {
+    $total += $item['precio'] * $item['cantidad'];
+}
+
+// Procesar pago
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pagar'])) {
+
     $fecha_pedido = date("Y-m-d H:i:s");
 
-    foreach ($carrito as $item) {
-        $total += $item['precio'] * $item['cantidad'];
-    }
-
-    // 1. Insertar pedido
+    // Insertar pedido
     $stmt = $conexion->prepare("INSERT INTO pedidos (id_usuario, fecha_pedido, total) VALUES (?, ?, ?)");
     $stmt->bind_param("isd", $id_usuario, $fecha_pedido, $total);
     $stmt->execute();
     $id_pedido = $stmt->insert_id;
     $stmt->close();
 
-    // 2. Insertar detalle y actualizar stock
-    $facturaHTML = "<h2>Factura del pedido</h2>";
-    $facturaHTML .= "<p><strong>Fecha:</strong> $fecha_pedido</p>";
-    $facturaHTML .= "<table border='1' cellpadding='6' cellspacing='0' style='width:100%; border-collapse:collapse;'>
-                      <thead><tr>
-                        <th>Producto</th><th>Cantidad</th><th>Precio</th><th>Subtotal</th>
-                      </tr></thead><tbody>";
+    // Guardar detalles y preparar línea de factura
+    $lineas = [];
 
     foreach ($carrito as $id_producto => $item) {
         $nombre = $item['nombre'];
         $cantidad = $item['cantidad'];
-        $precio_unitario = $item['precio'];
-        $subtotal = $precio_unitario * $cantidad;
+        $precio = $item['precio'];
+        $subtotal = $precio * $cantidad;
 
-        $stmt = $conexion->prepare("INSERT INTO detalle_pedido (id_pedido, nombre_producto, cantidad, precio_unitario, subtotal) VALUES (?, ?, ?, ?, ?)");
-        $stmt->bind_param("isidd", $id_pedido, $nombre, $cantidad, $precio_unitario, $subtotal);
-        $stmt->execute();
-        $stmt->close();
+        $lineas[] = [$nombre, $cantidad, $precio, $subtotal];
 
+        // Insertar detalle
+        $stmtDetalle = $conexion->prepare("INSERT INTO detalle_pedido (id_pedido, nombre_producto, cantidad, precio_unitario, subtotal) VALUES (?, ?, ?, ?, ?)");
+        $stmtDetalle->bind_param("isidd", $id_pedido, $nombre, $cantidad, $precio, $subtotal);
+        $stmtDetalle->execute();
+        $stmtDetalle->close();
+
+        // Actualizar stock
         $stmtStock = $conexion->prepare("UPDATE productos SET stock = stock - ? WHERE id_producto = ?");
         $stmtStock->bind_param("ii", $cantidad, $id_producto);
         $stmtStock->execute();
         $stmtStock->close();
-
-        $facturaHTML .= "<tr>
-                          <td>$nombre</td>
-                          <td>$cantidad</td>
-                          <td>" . number_format($precio_unitario, 2) . " €</td>
-                          <td>" . number_format($subtotal, 2) . " €</td>
-                        </tr>";
     }
 
-    $facturaHTML .= "</tbody></table>";
-    $facturaHTML .= "<p style='text-align:right; font-size:16px;'><strong>Total: " . number_format($total, 2) . " €</strong></p>";
-
-    // 3. Generar PDF
-    $options = new Options();
-    $options->set('defaultFont', 'Arial');
-    $dompdf = new Dompdf($options);
-    $dompdf->loadHtml($facturaHTML);
-    $dompdf->setPaper('A4', 'portrait');
-    $dompdf->render();
-
-    $pdfDir = "../facturas";
-    if (!file_exists($pdfDir)) {
-        mkdir($pdfDir, 0777, true);
+    // Crear carpeta facturas si no existe
+    if (!file_exists("../facturas")) {
+        mkdir("../facturas", 0777, true);
     }
 
-    $pdfFile = "$pdfDir/factura_$id_pedido.pdf";
-    file_put_contents($pdfFile, $dompdf->output());
+    // --------------------------
+    // CREAR FACTURA PDF
+    // --------------------------
+    $pdf = new FPDF();
+    $pdf->AddPage();
 
-    // 4. Enviar correo
-    $to = "mariagarvid2000@gmail.com";
-    $subject = "Confirmación de pedido - Beauty";
-    $message = "Gracias por su pedido. Adjunto su factura.";
-    $separator = md5(time());
-    $eol = PHP_EOL;
+    // Encabezado
+    $pdf->SetFont('Arial', 'B', 18);
+    $pdf->Cell(0, 10, 'Factura - Beauty', 0, 1, 'C');
+    $pdf->Ln(5);
 
-    $headers = "From: Beauty <no-reply@beauty.com>" . $eol;
-    $headers .= "MIME-Version: 1.0" . $eol;
-    $headers .= "Content-Type: multipart/mixed; boundary=\"" . $separator . "\"" . $eol;
+    $pdf->SetFont('Arial', '', 12);
+    $pdf->Cell(0, 10, 'Fecha: ' . $fecha_pedido, 0, 1);
+    $pdf->Ln(5);
 
-    $body = "--" . $separator . $eol;
-    $body .= "Content-Type: text/plain; charset=\"utf-8\"" . $eol;
-    $body .= "Content-Transfer-Encoding: 7bit" . $eol . $eol;
-    $body .= $message . $eol;
+    // Encabezado tabla
+    $pdf->SetFont('Arial', 'B', 12);
+    $pdf->Cell(80, 10, 'Producto', 1);
+    $pdf->Cell(30, 10, 'Cantidad', 1);
+    $pdf->Cell(40, 10, 'Precio', 1);
+    $pdf->Cell(40, 10, 'Subtotal', 1);
+    $pdf->Ln();
 
-    $attachment = chunk_split(base64_encode(file_get_contents($pdfFile)));
-    $body .= "--" . $separator . $eol;
-    $body .= "Content-Type: application/pdf; name=\"factura_$id_pedido.pdf\"" . $eol;
-    $body .= "Content-Transfer-Encoding: base64" . $eol;
-    $body .= "Content-Disposition: attachment; filename=\"factura_$id_pedido.pdf\"" . $eol . $eol;
-    $body .= $attachment . $eol;
-    $body .= "--" . $separator . "--";
+    // Contenido tabla
+    $pdf->SetFont('Arial', '', 12);
+    foreach ($lineas as [$nombre, $cantidad, $precio, $subtotal]) {
+        $pdf->Cell(80, 10, utf8_decode($nombre), 1);
+        $pdf->Cell(30, 10, $cantidad, 1);
+        $pdf->Cell(40, 10, number_format($precio, 2) . ' ' . chr(128), 1);     // €
+        $pdf->Cell(40, 10, number_format($subtotal, 2) . ' ' . chr(128), 1);   // €
+        $pdf->Ln();
+    }
 
-    mail($to, $subject, $body, $headers);
+    // Total
+    $pdf->Cell(150, 10, 'Total', 1);
+    $pdf->Cell(40, 10, number_format($total, 2) . ' ' . chr(128), 1);
 
+    // Guardar PDF
+    $pdfPath = "../facturas/factura_" . $id_pedido . ".pdf";
+    $pdf->Output("F", $pdfPath);
+
+    // --------------------------
+    // ENVIAR FACTURA POR EMAIL
+    // --------------------------
+    $mail = new PHPMailer(true);
+    try {
+        $mail->setFrom('no-reply@beauty.com', 'Beauty');
+        $mail->addAddress("mariagarvid2000@gmail.com");
+
+        $mail->Subject = "Factura de su compra";
+        $mail->Body =
+            "Gracias por su compra.\n\n" .
+            "Adjuntamos su factura.\n" .
+            "Total pagado: " . number_format($total, 2) . " €";
+
+        $mail->addAttachment($pdfPath);
+
+        $mail->send();
+
+    } catch (Exception $e) {
+        error_log("Error enviando correo: " . $mail->ErrorInfo);
+    }
+
+    // Vaciar carrito
     $_SESSION['carrito'] = [];
-    header("Location: pago_exitoso.php");
+
+    // --------------------------
+    // MENSAJE DE ÉXITO
+    // --------------------------
+    echo <<<HTML
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Pago Exitoso</title>
+    <style>
+        body {
+            background-color: #f1dddb;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .mensaje {
+            background-color: white;
+            padding: 40px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+        .loader {
+            margin: 20px auto;
+            border: 5px solid #ccc;
+            border-top: 5px solid #843e3c;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        h2 { color: #843e3c; }
+    </style>
+    <script>
+        setTimeout(() => { window.location.href = 'tienda.php'; }, 5000);
+    </script>
+</head>
+<body>
+    <div class="mensaje">
+        <h2>¡Gracias por tu compra!</h2>
+        <p>Tu pedido ha sido confirmado correctamente.</p>
+        <div class="loader"></div>
+        <p>Serás redirigido a la tienda en 5 segundos...</p>
+    </div>
+</body>
+</html>
+HTML;
+
     exit;
 }
 ?>
 
+<!-- FORMULARIO DE PAGO -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Pago con tarjeta</title>
-  <link rel="stylesheet" href="../css/pagos.css">
+    <meta charset="UTF-8">
+    <title>Pago con tarjeta</title>
+    <link rel="stylesheet" href="../css/pagos.css">
 </head>
 <body>
-  <div class="container">
-    <h2>Introduce tus datos de tarjeta</h2>
+
+<div class="paypal-box">
+    <div class="paypal-header">
+        <img src="https://www.paypalobjects.com/webstatic/icon/pp258.png" class="paypal-logo">
+        <span><strong>Pagar con <span class="paypal-blue">PayPal</span></strong> o tarjeta</span>
+    </div>
 
     <form method="post" action="pago.php">
-      <div class="form-group">
-        <label for="nombre">Nombre en la tarjeta</label>
-        <input type="text" name="nombre" id="nombre" required>
-      </div>
 
-      <div class="form-group">
-        <label for="tarjeta">Número de tarjeta</label>
-        <input type="text" name="tarjeta" id="tarjeta" maxlength="16" pattern="\d{16}" required>
-      </div>
+        <div class="form-group">
+            <label>Nombre en la tarjeta</label>
+            <input type="text" name="nombre" required>
+        </div>
 
-      <div class="form-group">
-        <label for="caducidad">Fecha de caducidad (MM/AA)</label>
-        <input type="text" name="caducidad" id="caducidad" placeholder="MM/AA" pattern="\d{2}/\d{2}" required>
-      </div>
+        <div class="form-group">
+            <label>Número de tarjeta</label>
+            <input type="text" name="tarjeta" maxlength="16" pattern="\d{16}" required>
+        </div>
 
-      <div class="form-group">
-        <label for="cvv">CVV</label>
-        <input type="text" name="cvv" id="cvv" maxlength="4" pattern="\d{3,4}" required>
-      </div>
+        <div class="form-group">
+            <label>Fecha caducidad (MM/AA)</label>
+            <input type="text" name="caducidad" pattern="\d{2}/\d{2}" required>
+        </div>
 
-      <div class="total">
-        Total: 
-        <?php
-          foreach ($carrito as $producto) {
-            $total += $producto['precio'] * $producto['cantidad'];
-          }
-          echo number_format($total, 2) . " €";
-        ?>
-      </div>
+        <div class="form-group">
+            <label>CVV</label>
+            <input type="text" name="cvv" maxlength="4" pattern="\d{3,4}" required>
+        </div>
 
-      <button type="submit" name="pagar" class="btn-pagar">Pagar</button>
+        <div class="total">Total: <?= number_format($total, 2) ?> €</div>
+
+        <button type="submit" name="pagar" class="btn-paypal">Pagar con PayPal</button>
+
+        <div class="card-logos">
+            <img src="https://www.paypalobjects.com/webstatic/mktg/logo/pp_cc_mark_111x69.jpg">
+        </div>
+
     </form>
-  </div>
+</div>
+
 </body>
 </html>

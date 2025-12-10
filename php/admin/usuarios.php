@@ -7,17 +7,43 @@ if (!isset($_SESSION['id_usuario']) || $_SESSION['tipo_usuario'] !== 'admin') {
 
 include("../../connection/db.php");
 
-$busqueda = $_GET['busqueda'] ?? "";
+// Procesar edición
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['editar_usuario'])) {
+    $id = intval($_POST['id']);
+    $email = trim($_POST['email']);
+    $direccion = trim($_POST['direccion']);
+    $telefono = trim($_POST['telefono']);
 
-$sql = "SELECT id_usuario, nombre, apellidos, email, teléfono, fecha_registro 
+    $stmt = $conexion->prepare("UPDATE usuarios SET email = ?, direccion = ?, telefono = ? WHERE id_usuario = ?");
+    $stmt->bind_param("sssi", $email, $direccion, $telefono, $id);
+    $stmt->execute();
+    $stmt->close();
+
+    header("Location: usuarios.php?mensaje=modificado");
+    exit;
+}
+
+// Procesar eliminación
+if (isset($_GET['eliminar'])) {
+    $idEliminar = intval($_GET['eliminar']);
+    $stmt = $conexion->prepare("DELETE FROM usuarios WHERE id_usuario = ?");
+    $stmt->bind_param("i", $idEliminar);
+    $stmt->execute();
+    $stmt->close();
+
+    header("Location: usuarios.php?mensaje=eliminado");
+    exit;
+}
+
+// Buscar usuarios
+$busqueda = $_GET['busqueda'] ?? "";
+$sql = "SELECT id_usuario, nombre, apellidos, email, direccion, telefono, fecha_registro 
         FROM usuarios 
         WHERE tipo_usuario = 'cliente'";
-
 if (!empty($busqueda)) {
     $busqueda = $conexion->real_escape_string($busqueda);
     $sql .= " AND (nombre LIKE '%$busqueda%' OR email LIKE '%$busqueda%')";
 }
-
 $resultado = $conexion->query($sql);
 ?>
 <!DOCTYPE html>
@@ -40,43 +66,58 @@ $resultado = $conexion->query($sql);
             <a href="productos.php">PRODUCTOS</a>
         </div>
         <div class="profile-container">
-    <img src="../../img/perfil.png" alt="Perfil" class="profile-icon" id="profileIcon">
-    <div class="dropdown" id="dropdownMenu">
-        <a href="../logout.php">Cerrar Sesión</a>
-    </div>
-</div>
-
+            <img src="../../img/perfil.png" alt="Perfil" class="profile-icon" id="profileIcon">
+            <div class="dropdown" id="dropdownMenu">
+                <a href="../logout.php">Cerrar Sesión</a>
+            </div>
+        </div>
     </nav>
 </header>
 
 <main class="admin-container">
     <h2 class="admin-title">Usuarios Registrados</h2>
 
+    <?php if (isset($_GET['mensaje'])): ?>
+        <div class="mensaje <?php echo $_GET['mensaje'] ?>">
+            <?php if ($_GET['mensaje'] == 'modificado') echo "✅ Usuario modificado correctamente.";
+                  elseif ($_GET['mensaje'] == 'eliminado') echo "🗑️ Usuario eliminado correctamente."; ?>
+        </div>
+        <script>
+            setTimeout(() => {
+                document.querySelector('.mensaje').style.display = 'none';
+            }, 5000);
+        </script>
+    <?php endif; ?>
+
     <form method="get" class="buscador-form">
-        <input type="text" name="busqueda" placeholder="Buscar por nombre o email" value="<?php echo htmlspecialchars($busqueda); ?>">
+        <input type="text" name="busqueda" placeholder="Buscar por nombre o email" value="<?= htmlspecialchars($busqueda) ?>">
         <button type="submit">Buscar</button>
     </form>
 
     <table class="usuarios-table">
         <thead>
             <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Apellidos</th>
-                <th>Email</th>
-                <th>Teléfono</th>
-                <th>Fecha Registro</th>
+                <th>ID</th><th>Nombre</th><th>Apellidos</th>
+                <th>Email</th><th>Dirección</th><th>Teléfono</th>
+                <th>Fecha Registro</th><th>Acciones</th>
             </tr>
         </thead>
         <tbody>
             <?php while ($row = $resultado->fetch_assoc()): ?>
                 <tr>
-                    <td><?= $row['id_usuario'] ?></td>
+                <form method="post">
+                    <td><?= $row['id_usuario'] ?><input type="hidden" name="id" value="<?= $row['id_usuario'] ?>"></td>
                     <td><?= htmlspecialchars($row['nombre']) ?></td>
                     <td><?= htmlspecialchars($row['apellidos']) ?></td>
-                    <td><?= htmlspecialchars($row['email']) ?></td>
-                    <td><?= htmlspecialchars($row['teléfono']) ?></td>
+                    <td><input type="email" name="email" value="<?= htmlspecialchars($row['email']) ?>" required></td>
+                    <td><input type="text" name="direccion" value="<?= htmlspecialchars($row['direccion']) ?>" required></td>
+                    <td><input type="text" name="telefono" value="<?= htmlspecialchars($row['telefono']) ?>" required></td>
                     <td><?= $row['fecha_registro'] ?></td>
+                    <td>
+                        <button type="submit" name="editar_usuario" class="editar-btn">Guardar</button>
+                        <a href="?eliminar=<?= $row['id_usuario'] ?>" onclick="return confirm('¿Estás seguro de eliminar este usuario?')" class="eliminar-btn">Eliminar</a>
+                    </td>
+                </form>
                 </tr>
             <?php endwhile; ?>
         </tbody>

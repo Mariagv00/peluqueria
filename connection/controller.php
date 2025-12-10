@@ -2,10 +2,11 @@
 session_start();
 include("db.php");
 
-// ------------------- API REST -------------------
+/* ============================================================
+   API REST
+============================================================ */
 if (isset($_GET['api'])) {
 
-    // Obtener todos los servicios
     if ($_GET['api'] === 'servicios') {
         $resultado = $conexion->query("SELECT id_servicio, nombre FROM servicios");
         $servicios = [];
@@ -16,46 +17,44 @@ if (isset($_GET['api'])) {
 
         header('Content-Type: application/json');
         echo json_encode($servicios);
-        $conexion->close();
         exit;
     }
 
-    // Obtener descripción de un servicio
     if ($_GET['api'] === 'descripcion' && isset($_GET['id'])) {
         $id = intval($_GET['id']);
         $stmt = $conexion->prepare("SELECT descripcion FROM servicios WHERE id_servicio = ?");
         $stmt->bind_param("i", $id);
         $stmt->execute();
         $stmt->bind_result($descripcion);
-        if ($stmt->fetch()) {
-            echo $descripcion;
-        } else {
-            echo "Descripción no disponible.";
-        }
-        $stmt->close();
-        $conexion->close();
+        echo $stmt->fetch() ? $descripcion : "Descripción no disponible.";
         exit;
     }
 
-    // Comprobar disponibilidad de cita
     if ($_GET['api'] === 'comprobar_cita') {
-        $fecha = $_GET['fecha'] ?? '';
-        $hora = $_GET['hora'] ?? '';
-        $id_servicio = intval($_GET['servicio']);
+        $fecha = $_GET['fecha'];
+        $hora = $_GET['hora'];
+        $servicio = intval($_GET['servicio']);
 
         $stmt = $conexion->prepare("SELECT id_cita FROM citas WHERE fecha = ? AND hora = ? AND id_servicio = ?");
-        $stmt->bind_param("ssi", $fecha, $hora, $id_servicio);
+        $stmt->bind_param("ssi", $fecha, $hora, $servicio);
         $stmt->execute();
         $stmt->store_result();
 
-        echo ($stmt->num_rows > 0) ? "ocupado" : "libre";
+        if ($stmt->num_rows > 0) {
+            echo "ocupado";
+            exit;
+        }
 
-        $stmt->close();
-        $conexion->close();
+        $stmt2 = $conexion->prepare("SELECT COUNT(*) FROM citas WHERE fecha = ?");
+        $stmt2->bind_param("s", $fecha);
+        $stmt2->execute();
+        $stmt2->bind_result($total);
+        $stmt2->fetch();
+
+        echo ($total >= 8) ? "completo" : "libre";
         exit;
     }
 
-    // Obtener citas del usuario
     if ($_GET['api'] === 'citas') {
         if (!isset($_SESSION['id_usuario'])) {
             http_response_code(401);
@@ -81,163 +80,190 @@ if (isset($_GET['api'])) {
             $citas[] = $fila;
         }
 
-        header('Content-Type: application/json');
         echo json_encode($citas);
-        $stmt->close();
-        $conexion->close();
         exit;
     }
 }
 
-// ------------------- FORMULARIOS -------------------
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $accion = $_POST['accion'] ?? '';
 
-    // Registro de usuario
+
+/* ============================================================
+   FORMULARIOS
+============================================================ */
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $accion = $_POST['accion'] ?? "";
+
+
+    /* ============================================================
+           REGISTRO DE USUARIO
+    ============================================================ */
     if ($accion === "registro") {
+
         $nombre = trim($_POST['nombre']);
         $apellidos = trim($_POST['apellidos']);
         $email = trim($_POST['email']);
-        $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+        $password = $_POST['password'];
+        $direccion = trim($_POST['direccion']);
         $telefono = trim($_POST['telefono']);
-        $fecha_registro = date("Y-m-d H:i:s");
-        $tipo_usuario = "cliente";
 
-        $stmt = $conexion->prepare("INSERT INTO usuarios (nombre, apellidos, email, contraseña, teléfono, fecha_registro, tipo_usuario) VALUES (?, ?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("sssssss", $nombre, $apellidos, $email, $password, $telefono, $fecha_registro, $tipo_usuario);
-
-        try {
-            if ($stmt->execute()) {
-                echo "<script>alert('Usuario registrado con éxito'); window.location.href='../php/login.php';</script>";
-            }
-        } catch (mysqli_sql_exception $e) {
-            if (str_contains($e->getMessage(), "Duplicate entry")) {
-                echo "<script>alert('El correo ya está registrado'); window.history.back();</script>";
-            } else {
-                echo "<script>alert('Error al registrar usuario: " . $e->getMessage() . "'); window.history.back();</script>";
-            }
-        }
-
-        $stmt->close();
-    }
-
-    // Login
-    // Login
-elseif ($accion === "login") {
-    $email = trim($_POST['email']);
-    $password = $_POST['password'];
-
-    $stmt = $conexion->prepare("SELECT id_usuario, contraseña, tipo_usuario FROM usuarios WHERE email = ?");
-    $stmt->bind_param("s", $email);
-    $stmt->execute();
-    $resultado = $stmt->get_result();
-
-    if ($resultado->num_rows === 1) {
-        $usuario = $resultado->fetch_assoc();
-
-        if (password_verify($password, $usuario['contraseña']) || $password === $usuario['contraseña']) {
-    // Login válido
-            $_SESSION['id_usuario'] = $usuario['id_usuario'];
-            $_SESSION['tipo_usuario'] = $usuario['tipo_usuario'];
-
-            if ($usuario['tipo_usuario'] === 'admin') {
-                header("Location: ../php/admin/admin.php");
-            } else {
-                header("Location: ../php/index.php");
-            }
+        // Validación de contraseña fuerte
+        if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/', $password)) {
+            echo "<script>
+                sessionStorage.setItem('mensajeRegistro', '❌ La contraseña debe tener mínimo 8 caracteres, una mayúscula, una minúscula y un número.');
+                sessionStorage.setItem('tipoMensaje', 'error');
+                window.location.href = '../php/register.php';
+            </script>";
             exit;
-        } else {
-            echo "<script>alert('Contraseña incorrecta'); window.history.back();</script>";
         }
-    } else {
-        echo "<script>alert('Usuario no encontrado'); window.history.back();</script>";
+
+        // Contraseña cifrada
+        $password_hash = password_hash($password, PASSWORD_DEFAULT);
+
+        // Insertar usuario
+        $stmt = $conexion->prepare("
+            INSERT INTO usuarios (nombre, apellidos, email, contraseña, direccion, telefono, tipo_usuario)
+            VALUES (?, ?, ?, ?, ?, ?, 'cliente')
+        ");
+        $stmt->bind_param("ssssss", $nombre, $apellidos, $email, $password_hash, $direccion, $telefono);
+
+        if ($stmt->execute()) {
+
+            /* ---- Enviar correo al administrador ---- */
+            $para = "mariagarvid2000@gmail.com";
+            $asunto = "Nuevo registro en Beauty";
+            $mensaje = "El usuario $nombre se ha registrado.\n\nBienvenido a Beauty ❤️";
+            $headers = "From: Beauty <no-reply@beauty.com>\r\nContent-Type: text/plain; charset=UTF-8";
+
+            mail($para, $asunto, $mensaje, $headers);
+
+            echo "<script>
+                sessionStorage.setItem('mensajeRegistro', '✅ Usuario registrado correctamente');
+                sessionStorage.setItem('tipoMensaje', 'exito');
+                window.location.href = '../php/login.php';
+            </script>";
+            exit;
+
+        } else {
+            echo "<script>
+                sessionStorage.setItem('mensajeRegistro', '❌ El correo ya está registrado.');
+                sessionStorage.setItem('tipoMensaje', 'error');
+                window.location.href = '../php/register.php';
+            </script>";
+            exit;
+        }
     }
 
-    $stmt->close();
-}
 
 
-    // Registro de cita
-    elseif ($accion === "cita") {
+    /* ============================================================
+           LOGIN
+    ============================================================ */
+    if ($accion === "login") {
+
+        $email = trim($_POST['email']);
+        $password = $_POST['password'];
+
+        $stmt = $conexion->prepare("SELECT id_usuario, contraseña, tipo_usuario FROM usuarios WHERE email = ?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $stmt->store_result();
+
+        if ($stmt->num_rows === 1) {
+
+            $stmt->bind_result($id_usuario, $hash, $tipo);
+            $stmt->fetch();
+
+            $correcto = ($tipo === "admin")
+                ? ($password === $hash)
+                : password_verify($password, $hash);
+
+            if ($correcto) {
+
+                $_SESSION['id_usuario'] = $id_usuario;
+                $_SESSION['tipo_usuario'] = $tipo;
+
+                header("Location: " . ($tipo === "admin" ? "../php/admin/admin.php" : "../php/index.php"));
+                exit;
+            }
+
+            echo "<script>alert('Contraseña incorrecta'); window.history.back();</script>";
+            exit;
+        }
+
+        echo "<script>alert('Usuario no encontrado'); window.history.back();</script>";
+        exit;
+    }
+
+
+
+    /* ============================================================
+           REGISTRAR CITA
+    ============================================================ */
+    if ($accion === "cita") {
+
         if (!isset($_SESSION['id_usuario'])) {
             echo "<script>alert('Debes iniciar sesión para reservar.'); window.location.href='../php/login.php';</script>";
             exit;
         }
 
         $id_usuario = $_SESSION['id_usuario'];
-        $id_servicio = intval($_POST['servicio']);
-        $fecha = trim($_POST['fecha']);
-        $hora = trim($_POST['hora']);
+        $servicio = intval($_POST['servicio']);
+        $fecha = $_POST['fecha'];
+        $hora = $_POST['hora'];
         $notas = trim($_POST['notas']);
         $estado = "pendiente";
 
-        // Verificar si ya hay una cita para esa fecha y hora
-        $verificar = $conexion->prepare("SELECT id_cita FROM citas WHERE fecha = ? AND hora = ?");
-        $verificar->bind_param("ss", $fecha, $hora);
-        $verificar->execute();
-        $verificar->store_result();
+        /* --- Obtener nombre del usuario --- */
+        $stmtUser = $conexion->prepare("SELECT nombre FROM usuarios WHERE id_usuario = ?");
+        $stmtUser->bind_param("i", $id_usuario);
+        $stmtUser->execute();
+        $stmtUser->bind_result($nombre_usuario);
+        $stmtUser->fetch();
+        $stmtUser->close();
 
-        if ($verificar->num_rows > 0) {
-            echo "<script>alert('Ya hay una cita registrada para esa fecha y hora. Elige otro horario.'); window.history.back();</script>";
-            $verificar->close();
-            exit;
-        }
-        $verificar->close();
+        /* --- Comprobar cita repetida --- */
+        $stmt = $conexion->prepare("SELECT id_cita FROM citas WHERE fecha = ? AND hora = ? AND id_servicio = ?");
+        $stmt->bind_param("ssi", $fecha, $hora, $servicio);
+        $stmt->execute();
+        $stmt->store_result();
 
-        // Insertar nueva cita
-        $stmt = $conexion->prepare("INSERT INTO citas (id_usuario, id_servicio, fecha, hora, estado, notas) VALUES (?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("iissss", $id_usuario, $id_servicio, $fecha, $hora, $estado, $notas);
-
-        if ($stmt->execute()) {
-            // Obtener nombre usuario
-            $queryUser = $conexion->prepare("SELECT nombre FROM usuarios WHERE id_usuario = ?");
-            $queryUser->bind_param("i", $id_usuario);
-            $queryUser->execute();
-            $queryUser->bind_result($nombreUsuario);
-            $queryUser->fetch();
-            $queryUser->close();
-
-            // Simular envío de correo
-            $to = "mariagarvid2000@gmail.com";
-            $subject = "Nueva cita registrada en Beauty";
-            $message = "Gracias por su cita, $nombreUsuario.\n\n";
-            $message .= "Se le volverá a mandar un correo si su cita ha sido confirmada.\n";
-            $message .= "Fecha: $fecha\nHora: $hora\n";
-
-            $headers = "From: Beauty <beauty@gmail.com>\r\n";
-            $headers .= "Content-Type: text/plain; charset=UTF-8";
-
-            mail($to, $subject, $message, $headers);
-
-            echo "<script>alert('Cita registrada correctamente.'); window.location.href='../php/index.php';</script>";
-        } else {
-            echo "<script>alert('Error al registrar la cita: " . $stmt->error . "'); window.history.back();</script>";
-        }
-
-        $stmt->close();
-    }
-
-    // Cancelar cita
-    elseif ($accion === "cancelar_cita") {
-        if (!isset($_SESSION['id_usuario'])) {
-            echo "<script>alert('Debes iniciar sesión.'); window.location.href='../php/login.php';</script>";
+        if ($stmt->num_rows > 0) {
+            echo "<script>
+                sessionStorage.setItem('mensajeCita', '❌ La hora ya está ocupada para ese servicio.');
+                sessionStorage.setItem('tipoMensaje', 'error');
+                window.location.href = '../php/agenda.php';
+            </script>";
             exit;
         }
 
-        $id_usuario = $_SESSION['id_usuario'];
-        $fecha = $_POST['fecha'];
-        $hora = $_POST['hora'];
+        /* --- Insertar cita --- */
+        $stmt = $conexion->prepare("
+            INSERT INTO citas (id_usuario, id_servicio, fecha, hora, estado, notas)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ");
+        $stmt->bind_param("iissss", $id_usuario, $servicio, $fecha, $hora, $estado, $notas);
+        $stmt->execute();
 
-        $stmt = $conexion->prepare("DELETE FROM citas WHERE id_usuario = ? AND fecha = ? AND hora = ?");
-        $stmt->bind_param("iss", $id_usuario, $fecha, $hora);
+        /* ============================================================
+               ENVIAR CORREO AL ADMIN CON EL MENSAJE EXACTO
+        ============================================================ */
+        $para = "mariagarvid2000@gmail.com";
+        $asunto = "Nueva cita registrada";
+        $mensaje = "Gracias por su cita, $nombre_usuario.\n\n".
+                   "Se le volverá a mandar un correo si su cita ha sido confirmada.\n\n".
+                   "Fecha: $fecha\n".
+                   "Hora: $hora\n";
 
-        if ($stmt->execute()) {
-            echo "<script>alert('Cita cancelada.'); window.location.href='../php/citas.php';</script>";
-        } else {
-            echo "<script>alert('Error al cancelar la cita.'); window.history.back();</script>";
-        }
+        $headers = "From: Beauty <no-reply@beauty.com>\r\nContent-Type: text/plain; charset=UTF-8";
 
-        $stmt->close();
+        mail($para, $asunto, $mensaje, $headers);
+
+        echo "<script>
+            sessionStorage.setItem('mensajeCita', '✅ Cita registrada correctamente. Serás redirigido en 5 segundos...');
+            sessionStorage.setItem('tipoMensaje', 'exito');
+            window.location.href = '../php/agenda.php';
+        </script>";
+        exit;
     }
 }
 

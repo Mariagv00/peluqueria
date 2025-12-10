@@ -1,45 +1,44 @@
 document.addEventListener('DOMContentLoaded', function () {
-  const calendarEl = document.getElementById('calendar');
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
   const fechaInput = document.getElementById('fechaSeleccionada');
   const servicioSelect = document.getElementById('servicio');
   const descripcionTextarea = document.getElementById('descripcion');
   const horaSelect = document.getElementById('hora');
   const form = document.getElementById('citaForm');
 
-  if (!calendarEl || typeof FullCalendar === 'undefined') return;
+  // Crear contenedor de mensajes
+  const mensajeDiv = document.createElement("div");
+  mensajeDiv.classList.add("mensaje");
+  form.parentNode.insertBefore(mensajeDiv, form);
 
-  const calendar = new FullCalendar.Calendar(calendarEl, {
-    initialView: 'dayGridMonth',
-    locale: 'es',
-    firstDay: 1,
-    selectable: true,
-    fixedWeekCount: false,
-    showNonCurrentDates: false,
-    validRange: {
-      start: today.toISOString().split('T')[0]
-    },
-    dateClick: function (info) {
-      const clickedDate = new Date(info.dateStr);
-      const dayOfWeek = clickedDate.getDay();
-      clickedDate.setHours(0, 0, 0, 0);
+  function mostrarMensaje(texto, tipo = "error") {
+    mensajeDiv.textContent = texto;
+    mensajeDiv.className = "mensaje " + tipo;
+    mensajeDiv.style.display = "block";
+    setTimeout(() => {
+      mensajeDiv.style.display = "none";
+    }, 5000);
+  }
 
-      if (clickedDate < today || dayOfWeek === 0 || dayOfWeek === 6) {
-        alert("No puedes seleccionar sábados, domingos ni días anteriores a hoy.");
-        return;
-      }
+  // Mostrar mensaje guardado en sessionStorage (tras redirección)
+  const mensajeGuardado = sessionStorage.getItem("mensajeCita");
+  const tipoMensaje = sessionStorage.getItem("tipoMensaje");
+  if (mensajeGuardado) {
+    mostrarMensaje(mensajeGuardado, tipoMensaje || "exito");
+    sessionStorage.removeItem("mensajeCita");
+    sessionStorage.removeItem("tipoMensaje");
 
-      document.querySelectorAll('.fc-daygrid-day').forEach(d => d.classList.remove('fc-day-selected'));
-      info.dayEl.classList.add('fc-day-selected');
-      fechaInput.value = info.dateStr;
+    if (mensajeGuardado.includes("Serás redirigido")) {
+      setTimeout(() => {
+        window.location.href = "agenda.php";
+      }, 5000);
     }
-  });
+  }
 
-  calendar.render();
+  // Restringir fechas pasadas y fines de semana
+  const today = new Date().toISOString().split('T')[0];
+  fechaInput.setAttribute("min", today);
 
-  // Dropdown perfil
+  // Dropdown del perfil
   const profileIcon = document.getElementById("profileIcon");
   const dropdownMenu = document.getElementById("dropdownMenu");
 
@@ -56,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // Cargar servicios dinámicamente
+  // Cargar servicios
   fetch("../connection/controller.php?api=servicios")
     .then(res => res.json())
     .then(data => {
@@ -67,9 +66,13 @@ document.addEventListener('DOMContentLoaded', function () {
         option.textContent = serv.nombre;
         servicioSelect.appendChild(option);
       });
+    })
+    .catch(err => {
+      mostrarMensaje("Error al cargar servicios.", "error");
+      console.error(err);
     });
 
-  // Mostrar descripción al seleccionar servicio
+  // Cargar descripción automáticamente
   servicioSelect.addEventListener("change", function () {
     const id = this.value;
     if (!id) {
@@ -84,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function () {
       });
   });
 
-  // Validación previa al envío (evitar duplicados)
+  // Validación de día y disponibilidad
   form.addEventListener("submit", function (e) {
     e.preventDefault();
 
@@ -92,23 +95,25 @@ document.addEventListener('DOMContentLoaded', function () {
     const hora = horaSelect.value;
     const servicio = servicioSelect.value;
 
-    if (!fecha || !hora || !servicio) {
-      alert("Todos los campos son obligatorios y debe seleccionarse una fecha válida.");
+    const selectedDate = new Date(fecha);
+    const day = selectedDate.getDay(); // 0 domingo, 6 sábado
+
+    if (day === 0 || day === 6) {
+      mostrarMensaje("No se permiten citas los sábados ni domingos.", "error");
       return;
     }
 
-    // Verificar disponibilidad antes de enviar
     fetch(`../connection/controller.php?api=comprobar_cita&fecha=${fecha}&hora=${hora}&servicio=${servicio}`)
       .then(res => res.text())
       .then(resp => {
         if (resp === "ocupado") {
-          alert("La hora ya está ocupada para ese servicio. Elige otra.");
+          mostrarMensaje("La hora ya está ocupada para ese servicio. Elige otra.", "error");
         } else {
-          form.submit(); // todo correcto, ahora sí envía
+          form.submit(); // Si está libre, enviar
         }
       })
-      .catch(err => {
-        alert("Error al comprobar disponibilidad.");
+      .catch(() => {
+        mostrarMensaje("Error al comprobar disponibilidad.", "error");
       });
   });
 });

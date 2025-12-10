@@ -3,14 +3,12 @@
   display: flex;
   gap: 10px;
 }
-
 .buscador-form input[type="text"] {
   flex: 1;
   padding: 8px;
   border: 1px solid #aaa;
   border-radius: 4px;
 }
-
 .buscador-form button {
   background-color: #843e3c;
   color: white;
@@ -20,50 +18,61 @@
   cursor: pointer;
   font-weight: bold;
 }
-
 .buscador-form button:hover {
   background-color: #6d302e;
 }
-
 .usuarios-table {
   width: 100%;
   border-collapse: collapse;
   background-color: white;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
-
 .usuarios-table th,
 .usuarios-table td {
   padding: 10px 15px;
   text-align: left;
   border-bottom: 1px solid #ccc;
 }
-
 .usuarios-table th {
   background-color: #843e3c;
   color: white;
 }
-
 .usuarios-table tr:nth-child(even) {
   background-color: #f9f1f0;
 }
-
-.dropdown {
-  display: none;
-  position: absolute;
-  right: 0;
-  background-color: white;
+.usuarios-table input {
+  width: 100%;
+  padding: 5px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  padding: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  z-index: 10;
 }
-
-.dropdown.show {
-  display: block;
+.editar-btn, .eliminar-btn {
+  background-color: #843e3c;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  margin-right: 5px;
+  cursor: pointer;
 }
-
-.profile-container {
-  position: relative;
+.eliminar-btn {
+  background-color: #a52a2a;
+}
+.editar-btn:hover, .eliminar-btn:hover {
+  opacity: 0.85;
+}
+.mensaje {
+  margin: 15px 0;
+  padding: 10px;
+  border-radius: 5px;
+  font-weight: bold;
+  background-color: #f0f0f0;
+}
+.mensaje.modificado {
+  background-color: #d4edda;
+  color: #155724;
+}
+.mensaje.eliminado {
+  background-color: #f8d7da;
+  color: #721c24;
 }

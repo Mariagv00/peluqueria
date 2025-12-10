@@ -3,12 +3,13 @@ session_start();
 ?>
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <title>Agenda</title>
   <link rel="stylesheet" href="../css/agenda.css">
-  <link href="https://unpkg.com/fullcalendar@6.1.9/main.min.css" rel="stylesheet" type="text/css">
 </head>
+
 <body>
 
   <!-- Header -->
@@ -25,6 +26,8 @@ session_start();
         <div class="dropdown" id="dropdownMenu">
           <?php if (isset($_SESSION['id_usuario'])): ?>
             <a href="citas.php">Mis citas</a>
+            <a class="dropdown-item" href="pedidos.php">Mis pedidos</a>
+            <a href="perfil.php">Perfil</a>
             <a href="logout.php">Cerrar Sesión</a>
           <?php else: ?>
             <a href="login.php">Iniciar Sesión</a>
@@ -35,22 +38,31 @@ session_start();
     </nav>
   </header>
 
-  <!-- Contenido -->
-  <main class="main-content">
-    <div class="agenda-container">
+  <!-- Contenido de Agenda -->
+  <main class="agenda-container">
 
-      <!-- Calendario -->
-      <div class="calendar-box">
-        <h2>Selecciona un día</h2>
-        <div id="calendar"></div>
-        <input type="hidden" id="fechaSeleccionadaInput" name="fecha">
+    <!-- Texto arriba del fondo -->
+    <div class="banner-content">
+      <h1>¡Reserva tu cita online!</h1>
+      <p>Transforma el look, agenda con facilidad.</p>
+    </div>
+
+    <!-- Fondo + formulario perfectamente centrado -->
+    <div class="agenda-card">
+
+      <!-- Fondo -->
+      <div class="agenda-background">
+        <img src="../img/agenda/fondo.jpg" alt="Fondo agenda" />
       </div>
 
-      <!-- Formulario -->
+      <!-- Formulario dentro del fondo -->
       <div class="form-box">
         <h3>CITAS:</h3>
         <form method="POST" action="../connection/controller.php" id="citaForm">
           <input type="hidden" name="accion" value="cita">
+
+          <label><strong>Fecha</strong></label>
+          <input type="date" name="fecha" id="fechaSeleccionada" required>
 
           <label><strong>Horas disponibles</strong></label>
           <select name="hora" id="hora" required>
@@ -75,8 +87,6 @@ session_start();
           <label><strong>Notas</strong></label>
           <textarea name="notas" rows="4" placeholder="Escribe aquí..."></textarea>
 
-          <input type="hidden" id="fechaSeleccionada" name="fecha">
-
           <div class="button-box">
             <button type="submit">Confirmar cita</button>
           </div>
@@ -84,6 +94,25 @@ session_start();
       </div>
 
     </div>
+
+    <!-- Testimonios -->
+    <section class="testimonios">
+      <h2>Lo que dicen nuestros clientes:</h2>
+      <div class="testimonios-container">
+        <div class="testimonio">
+          <img src="../img/agenda/avatar1.jpeg" alt="Usuario 1">
+          <p>"¡Excelente atención y muy fácil!"</p>
+        </div>
+        <div class="testimonio">
+          <img src="../img/agenda/avatar2.jpeg" alt="Usuario 2">
+          <p>"Rápido y cómodo agendar mi cita."</p>
+        </div>
+        <div class="testimonio">
+          <img src="../img/agenda/avatar3.jpeg" alt="Usuario 3">
+          <p>"El mejor servicio de peluquería online."</p>
+        </div>
+      </div>
+    </section>
   </main>
 
   <!-- Footer -->
@@ -91,8 +120,7 @@ session_start();
     <p>&copy; 2025 Beauty. Todos los derechos reservados.</p>
   </footer>
 
-  <!-- Scripts -->
-  <script src="https://unpkg.com/fullcalendar@6.1.9/index.global.min.js"></script>
   <script src="../javascript/agenda.js"></script>
 </body>
+
 </html>
